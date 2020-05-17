@@ -103,8 +103,26 @@
 
 // Defines a global variable
 #define GLOBALVAR(type, name, addr) namespace { type &name = *reinterpret_cast<type*>(addr); }
-
+                             \
 // Defines a function which uses the thiscall convention
+#ifdef __GNUC__ 
+
+#define THISFN(rettype, name, args)                                                               \
+	rettype __fastcall z_thisfn_impl_##name (EXPAND(void*, EXPAND args));                         \
+	namespace                                                                                     \
+	{                                                                                             \
+		__attribute((naked)) void z_thisfn_jmp_##name args                                        \
+		{                                                                                         \
+			__asm__ volatile (                                                                    \
+				"mov %%ecx, %%edx\nxor %%ecx, %%ecx\njmp %[dest]" : : [dest] "r"( &z_thisfn_impl_##name ) : );       \
+		}                                                                                         \
+	}                                                                                             \
+	typedef rettype (__thiscall* z_thisfn_ptr_##name) args;                                       \
+	const z_thisfn_ptr_##name name = reinterpret_cast<z_thisfn_ptr_##name>(z_thisfn_jmp_##name);  \
+	rettype __fastcall z_thisfn_impl_##name (EXPAND(void*, EXPAND args))
+
+#else
+
 #define THISFN(rettype, name, args)                                                               \
 	rettype __fastcall z_thisfn_impl_##name (EXPAND(void*, EXPAND args));                         \
 	namespace                                                                                     \
@@ -114,11 +132,13 @@
 			__asm mov edx, ecx                                                                    \
 			__asm xor ecx, ecx                                                                    \
 			__asm jmp z_thisfn_impl_##name                                                        \
-		}                                                                                         \
+		}                                                                                         \                                                                                  
 	}                                                                                             \
 	typedef rettype (__thiscall* z_thisfn_ptr_##name) args;                                       \
 	const z_thisfn_ptr_##name name = reinterpret_cast<z_thisfn_ptr_##name>(z_thisfn_jmp_##name);  \
 	rettype __fastcall z_thisfn_impl_##name (EXPAND(void*, EXPAND args))
+
+#endif
 
 // Defines a getter for a class field
 #define GETTERFN(rettype, internaltype, name, offset)                                    \

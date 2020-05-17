@@ -10,6 +10,9 @@
 #ifdef HAVE_CPUID_H
 #include <cpuid.h>
 #endif
+
+#undef __cpuid
+
 #ifdef HAVE_INTRIN_H
 #include <intrin.h>
 #endif

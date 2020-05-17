@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 2.8.8)
+
 include (CheckIncludeFiles)
 project (MBExtender C CXX)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (UNIX)
 	# Set Unix-specific flags
@@ -27,6 +30,17 @@ elseif (MSVC)
 	# Force use of static runtime library
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+elseif (WIN32)
+	message("WIN32")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-variable -std=c++03 -fvisibility=hidden")
+	enable_language (ASM)
+
+	# Force 32 bit
+	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+	set (CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -m32")
+	set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m32")
+	set (CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -m32")
 endif ()
 
 # Set OS X dylibs to be loaded from the executable directory
@@ -46,7 +60,7 @@ configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
 add_definitions(-DHAVE_CONFIG_H)
 
 # Register public include folder and build folder
-include_directories (include ${PROJECT_BINARY_DIR})
+include_directories (include ${PROJECT_BINARY_DIR} src/PluginLoader)
 
 # Launcher (Mac/Linux only)
 if (UNIX)
@@ -84,15 +98,22 @@ set (PLUGINLOADER_SRC
 )
 if (UNIX)
 	set (PLUGINLOADER_SRC ${PLUGINLOADER_SRC}
-		src/PluginLoader/unix/LDE64-as.s
 		src/PluginLoader/unix/main-unix.cpp
 		src/PluginLoader/unix/Memory-unix.cpp
 		src/PluginLoader/unix/SharedObject-unix.cpp
 		src/PluginLoader/unix/Filesystem-unix.cpp
 	)
 elseif (WIN32)
+
+	if (USING_MINGW32)
+		set (PLUGINLOADER_SRC ${PLUGINLOADER_SRC}
+			src/PluginLoader/unix/LDE64-as.s)
+	else ()
+		set (PLUGINLOADER_SRC ${PLUGINLOADER_SRC}
+			src/PluginLoader/win32/LDE64-masm.asm)
+	endif ()
+
 	set (PLUGINLOADER_SRC ${PLUGINLOADER_SRC}
-		src/PluginLoader/win32/LDE64-masm.asm
 		src/PluginLoader/win32/main-win32.cpp
 		src/PluginLoader/win32/Memory-win32.cpp
 		src/PluginLoader/win32/SharedObject-win32.cpp

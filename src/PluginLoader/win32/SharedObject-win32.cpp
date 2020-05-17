@@ -1,5 +1,5 @@
 #include "../SharedObject.h"
-#include <Windows.h>
+#include <windows.h>
 
 const char *SharedObject::DefaultExtension = ".dll";
 
@@ -44,6 +44,6 @@ bool SharedObject::unload()
 void *SharedObject::getSymbol(const char *name) const
 {
 	if (handle)
-		return GetProcAddress(static_cast<HMODULE>(handle), name);
+		return (void*)GetProcAddress(static_cast<HMODULE>(handle), name);
 	return NULL;
 }

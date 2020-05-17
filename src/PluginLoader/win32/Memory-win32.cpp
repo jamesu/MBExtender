@@ -1,5 +1,6 @@
 #include "Memory.h"
-#include <Windows.h>
+#include <windows.h>
+
 
 namespace Memory
 {
@@ -14,14 +15,14 @@ namespace Memory
 		// Allocate pages
 		void *buffer = VirtualAlloc(NULL, minSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 		if (!buffer)
-			return false;
+			return NULL;
 
 		// Query the actual size of it
 		MEMORY_BASIC_INFORMATION info;
 		if (VirtualQuery(buffer, &info, sizeof(MEMORY_BASIC_INFORMATION)) != sizeof(MEMORY_BASIC_INFORMATION))
 		{
 			VirtualFree(buffer, 0, MEM_RELEASE);
-			return false;
+			return NULL;
 		}
 		*actualSize = info.RegionSize;
 		return buffer;

@@ -1,4 +1,4 @@
-#include <Windows.h>
+#include <windows.h>
 #include "MultimediaTimer-win32.hpp"
 
 MultimediaTimer::MultimediaTimer()

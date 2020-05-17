@@ -1,6 +1,8 @@
 #ifndef PLUGINLOADER_MEMORY_H
 #define PLUGINLOADER_MEMORY_H
 
+#include <cstddef>
+
 // Platform-specific memory-related functions
 namespace Memory
 {
